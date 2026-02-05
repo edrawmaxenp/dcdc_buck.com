@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buck Converter Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+        }
+        
+        .section h2 {
+            color: #444;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .result-card.duty { border-left-color: #667eea; }
+        .result-card.inductor { border-left-color: #10b981; }
+        .result-card.cout { border-left-color: #3b82f6; }
+        .result-card.cin { border-left-color: #8b5cf6; }
+        .result-card.rms { border-left-color: #f59e0b; }
+        .result-card.loss { border-left-color: #ef4444; }
+        
+        .result-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .result-card.inductor .result-value { color: #10b981; }
+        .result-card.cout .result-value { color: #3b82f6; }
+        .result-card.cin .result-value { color: #8b5cf6; }
+        .result-card.rms .result-value { color: #f59e0b; font-size: 1.2em; }
+        .result-card.loss .result-value { color: #ef4444; font-size: 1.2em; }
+        
+        .result-note {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 8px;
+        }
+        
+        .equations-section {
+            background: #f1f5f9;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .equations-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .equation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .equation {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .equation-title {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        
+        .equation-formula {
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            font-size: 0.9em;
+        }
+        
+        .notes-section {
+            background: #dbeafe;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .notes-section h3 {
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+        
+        .notes-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .notes-section li {
+            color: #1e3a8a;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .notes-section li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        sub {
+            font-size: 0.7em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <path d="M9 9h6M9 15h6"/>
+            </svg>
+            Buck Converter Calculator
+        </h1>
+        <p class="subtitle">Calculate component values and operating parameters for your buck converter design</p>
+        
+        <div class="grid">
+            <div class="section">
+                <h2>Input Parameters</h2>
+                
+                <div class="input-group">
+                    <label for="vin">Input Voltage (V<sub>IN</sub>) - Volts</label>
+                    <input type="number" id="vin" value="12" step="0.1" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="vout">Output Voltage (V<sub>OUT</sub>) - Volts</label>
+                    <input type="number" id="vout" value="5" step="0.1" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="iout">Output Current (I<sub>OUT</sub>) - Amps</label>
+                    <input type="number" id="iout" value="3" step="0.1" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="fsw">Switching Frequency - kHz</label>
+                    <input type="number" id="fsw" value="300" step="10" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="vripple">Output Voltage Ripple - %</label>
+                    <input type="number" id="vripple" value="1" step="0.1" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="iripple">Inductor Current Ripple - %</label>
+                    <input type="number" id="iripple" value="30" step="5" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="rdsonHigh">High-Side MOSFET R<sub>DS(on)</sub> - mΩ</label>
+                    <input type="number" id="rdsonHigh" value="10" step="0.5" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="rdsonLow">Low-Side MOSFET R<sub>DS(on)</sub> - mΩ</label>
+                    <input type="number" id="rdsonLow" value="8" step="0.5" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="rthJC">MOSFET R<sub>θJC</sub> (Junction-to-Case) - °C/W</label>
+                    <input type="number" id="rthJC" value="1.5" step="0.1" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="ambTemp">Ambient Temperature - °C</label>
+                    <input type="number" id="ambTemp" value="50" step="5" oninput="calculate()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="maxJunc">Max Junction Temperature - °C</label>
+                    <input type="number" id="maxJunc" value="125" step="5" oninput="calculate()">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Design Results</h2>
+                
+                <div class="result-card duty">
+                    <div class="result-label">Duty Cycle (D)</div>
+                    <div class="result-value" id="dutyCycle">-</div>
+                </div>
+                
+                <div class="result-card inductor">
+                    <div class="result-label">Inductance (L)</div>
+                    <div class="result-value" id="inductance">-</div>
+                    <div class="result-note" id="peakCurrent">-</div>
+                </div>
+                
+                <div class="result-card cout">
+                    <div class="result-label">Output Capacitor (C<sub>OUT</sub>)</div>
+                    <div class="result-value" id="cout">-</div>
+                    <div class="result-note">ESR should be low for minimal ripple</div>
+                </div>
+                
+                <div class="result-card cin">
+                    <div class="result-label">Input Capacitor (C<sub>IN</sub>)</div>
+                    <div class="result-value" id="cin">-</div>
+                    <div class="result-note">Recommended minimum</div>
+                </div>
+                
+                <div class="result-card rms">
+                    <div class="result-label">MOSFET RMS Currents</div>
+                    <div class="result-value" id="rmsCurrents">-</div>
+                </div>
+                
+                <div class="result-card loss">
+                    <div class="result-label">Estimated Conduction Loss</div>
+                    <div class="result-value" id="condLoss">-</div>
+                </div>
+                
+                <div class="result-card" style="border-left-color: #06b6d4;">
+                    <div class="result-label">MOSFET Specifications</div>
+                    <div class="result-value" style="color: #06b6d4; font-size: 1em;" id="mosfetSpecs">-</div>
+                </div>
+                
+                <div class="result-card" style="border-left-color: #ec4899;">
+                    <div class="result-label">Heatsink Requirements</div>
+                    <div class="result-value" style="color: #ec4899; font-size: 1em;" id="heatsinkReq">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- <div class="equations-section">
+            <h3>Key Design Equations</h3>
+            <div class="equation-grid">
+                <div class="equation">
+                    <div class="equation-title">Duty Cycle:</div>
+                    <div class="equation-formula">D = V<sub>OUT</sub> / V<sub>IN</sub></div>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Inductance:</div>
+                    <div class="equation-formula">L = V<sub>OUT</sub>(V<sub>IN</sub> - V<sub>OUT</sub>) / (ΔI<sub>L</sub> × f<sub>SW</sub> × V<sub>IN</sub>)</div>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Output Capacitor:</div>
+                    <div class="equation-formula">C<sub>OUT</sub> = ΔI<sub>L</sub> / (8 × f<sub>SW</sub> × ΔV<sub>OUT</sub>)</div>
+                </div>
+                <div class="equation">
+                    <div class="equation-title">Peak Inductor Current:</div>
+                    <div class="equation-formula">I<sub>L(peak)</sub> = I<sub>OUT</sub> + ΔI<sub>L</sub>/2</div>
+                </div>
+            </div>
+        </div> -->
+        
+        <div class="notes-section">
+            <h3>Design Considerations</h3>
+            <ul>
+                <li>Typical inductor ripple current: 20-40% of output current</li>
+                <li>Higher switching frequency allows smaller L and C, but increases switching losses</li>
+                <li>Select MOSFETs with adequate voltage rating (1.5× V<sub>IN</sub> minimum) and low R<sub>DS(on)</sub></li>
+                <li>Use low-ESR capacitors (ceramic or polymer) for best ripple performance</li>
+                <li>Add input capacitance for high-frequency filtering and bulk energy storage</li>
+                <li>Consider dead-time control to prevent shoot-through in synchronous operation</li>
+                <li>Thermal management is critical - ensure adequate heatsinking for MOSFETs</li>
+            </ul>
+        </div>
+ <div class="Authors-section">
+            <h3>Created By</h3>
+            <ul>
+                <li>M.Senthilkumar</li>
+
+            </ul>
+        </div>
+
+    </div>
+    
+    <script>
+        function calculate() {
+            var vin = parseFloat(document.getElementById('vin').value) || 0;
+            var vout = parseFloat(document.getElementById('vout').value) || 0;
+            var iout = parseFloat(document.getElementById('iout').value) || 0;
+            var fsw = parseFloat(document.getElementById('fsw').value) || 0;
+            var vripple = parseFloat(document.getElementById('vripple').value) || 0;
+            var iripple = parseFloat(document.getElementById('iripple').value) || 0;
+            var rdsonHigh = parseFloat(document.getElementById('rdsonHigh').value) || 10;
+            var rdsonLow = parseFloat(document.getElementById('rdsonLow').value) || 8;
+            var rthJC = parseFloat(document.getElementById('rthJC').value) || 1.5;
+            var ambTemp = parseFloat(document.getElementById('ambTemp').value) || 50;
+            var maxJunc = parseFloat(document.getElementById('maxJunc').value) || 125;
+            
+            if (vin <= 0 || vout <= 0 || iout <= 0 || fsw <= 0) {
+                return;
+            }
+            
+            var dutyCycle = (vout / vin) * 100;
+            document.getElementById('dutyCycle').textContent = dutyCycle.toFixed(2) + '%';
+            
+            var deltaIL = (iripple / 100) * iout;
+            var L = (vout * (vin - vout)) / (deltaIL * fsw * 1000 * vin) * 1000000;
+            document.getElementById('inductance').textContent = L.toFixed(2) + ' uH';
+            
+            var peakCurrent = iout + deltaIL / 2;
+            var peakCurrentText = 'Peak current: ' + peakCurrent.toFixed(2) + ' A, DeltaI: ' + deltaIL.toFixed(2) + ' A';
+            document.getElementById('peakCurrent').textContent = peakCurrentText;
+            
+            var Cout = deltaIL / (8 * fsw * 1000 * (vripple / 100) * vout) * 1000000;
+            document.getElementById('cout').textContent = Cout.toFixed(2) + ' uF';
+            
+            var Cin = (iout * dutyCycle / 100) / (fsw * 1000 * 0.05 * vin) * 1000000;
+            document.getElementById('cin').textContent = Cin.toFixed(2) + ' uF';
+            
+            var iLrms = Math.sqrt(Math.pow(iout, 2) + Math.pow(deltaIL / Math.sqrt(12), 2));
+            var iHighSideRms = iLrms * Math.sqrt(dutyCycle / 100);
+            var iLowSideRms = iLrms * Math.sqrt(1 - dutyCycle / 100);
+            
+            var rmsText = 'High-side: ' + iHighSideRms.toFixed(2) + ' A<br>Low-side: ' + iLowSideRms.toFixed(2) + ' A<br>Inductor: ' + iLrms.toFixed(2) + ' A';
+            document.getElementById('rmsCurrents').innerHTML = rmsText;
+            
+            var rdsonHighOhms = rdsonHigh / 1000;
+            var rdsonLowOhms = rdsonLow / 1000;
+            var condLossHigh = Math.pow(iHighSideRms, 2) * rdsonHighOhms;
+            var condLossLow = Math.pow(iLowSideRms, 2) * rdsonLowOhms;
+            var totalLoss = condLossHigh + condLossLow;
+            
+            var lossText = 'High-side: ' + condLossHigh.toFixed(2) + ' W<br>Low-side: ' + condLossLow.toFixed(2) + ' W<br><strong>Total: ' + totalLoss.toFixed(2) + ' W</strong>';
+            document.getElementById('condLoss').innerHTML = lossText;
+            
+            var minVdsRating = vin * 1.5;
+            var powerDissHigh = condLossHigh;
+            var powerDissLow = condLossLow;
+            
+            var mosfetText = 'Min V<sub>DS</sub> Rating: ' + minVdsRating.toFixed(1) + ' V<br>';
+            mosfetText += 'High-side I<sub>D</sub> Rating: &gt; ' + (iHighSideRms * 1.5).toFixed(2) + ' A<br>';
+            mosfetText += 'Low-side I<sub>D</sub> Rating: &gt; ' + (iLowSideRms * 1.5).toFixed(2) + ' A<br>';
+            mosfetText += 'Peak Current Capability: &gt; ' + peakCurrent.toFixed(2) + ' A<br>';
+            mosfetText += 'High-side Power Diss: ' + powerDissHigh.toFixed(2) + ' W<br>';
+            mosfetText += 'Low-side Power Diss: ' + powerDissLow.toFixed(2) + ' W';
+            
+            document.getElementById('mosfetSpecs').innerHTML = mosfetText;
+            
+            var tempRise = maxJunc - ambTemp;
+            var rthTotal = tempRise / powerDissHigh;
+            var rthSinkHigh = rthTotal - rthJC - 0.5;
+            
+            var rthTotalLow = tempRise / powerDissLow;
+            var rthSinkLow = rthTotalLow - rthJC - 0.5;
+            
+            var heatsinkText = 'High-Side MOSFET:<br>';
+            heatsinkText += 'Junction Temp Rise: ' + (powerDissHigh * (rthJC + 0.5)).toFixed(1) + ' deg C<br>';
+            heatsinkText += 'Required R-theta-SA: ' + (rthSinkHigh > 0 ? rthSinkHigh.toFixed(2) : 'N/A') + ' deg C/W<br>';
+            if (rthSinkHigh > 20) {
+                heatsinkText += 'Status: Natural convection OK<br>';
+            } else if (rthSinkHigh > 5) {
+                heatsinkText += 'Status: Small heatsink required<br>';
+            } else if (rthSinkHigh > 0) {
+                heatsinkText += 'Status: Large heatsink or forced air required<br>';
+            } else {
+                heatsinkText += 'Status: Forced air cooling mandatory<br>';
+            }
+            
+            heatsinkText += '<br>Low-Side MOSFET:<br>';
+            heatsinkText += 'Junction Temp Rise: ' + (powerDissLow * (rthJC + 0.5)).toFixed(1) + ' deg C<br>';
+            heatsinkText += 'Required R-theta-SA: ' + (rthSinkLow > 0 ? rthSinkLow.toFixed(2) : 'N/A') + ' deg C/W<br>';
+            if (rthSinkLow > 20) {
+                heatsinkText += 'Status: Natural convection OK<br>';
+            } else if (rthSinkLow > 5) {
+                heatsinkText += 'Status: Small heatsink required<br>';
+            } else if (rthSinkLow > 0) {
+                heatsinkText += 'Status: Large heatsink or forced air required<br>';
+            } else {
+                heatsinkText += 'Status: Forced air cooling mandatory<br>';
+            }
+            
+            heatsinkText += '<br>Note: Assumes R-theta-CS = 0.5 deg C/W with thermal paste';
+            
+            document.getElementById('heatsinkReq').innerHTML = heatsinkText;
+        }
+        
+        calculate();
+    </script>
+</body>
+</html>
