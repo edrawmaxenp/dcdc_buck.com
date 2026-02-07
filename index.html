@@ -1,71 +1,131 @@
+<?php http_response_code(500); ?>
+
 <?php
-$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
-if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
-   $protocol = 'HTTP/1.0';
+$time_to_wait = 7200; // in seconds
+$site_title = 'Tmsentronix';
+$contact_link = 'https://t.me/'; // Exemple: 'xx@xx.xx', 'https://xx.xx.xx', 'https://discord.com/invite/xxx'
+$logo_path = './logo-light1.png'; // Spécifiez le chemin du logo
+$logo_link = 'mailto:hello@tmsentronix.info'; // Spécifiez le lien du logo
+$facebook_link = 'https://www.facebook.com/'; // Spécifiez le lien Facebook
+$linkedin_link = 'https://www.linkedin.com/in/'; // Spécifiez le lien LinkedIn
+$whatsapp_link = 'https://wa.me'; // Spécifiez le lien WhatsApp
+$legal_info = 'Copyright (c) 2026'; // Informations légales
+$redirect_url = 'https://.com'; // URL de redirection après le décompte
+$gears_gif_path = 'path/to/gears.gif'; // Spécifiez le chemin du GIF des engrenages tournants
+$font_color = '#dc8100';
+
+// Détecter le type de lien de contact
+if (strpos($contact_link, '@') !== false) {
+    $contact_href = 'mailto:' . $contact_link;
+} elseif (strpos($contact_link, 'http') === 0) {
+    $contact_href = $contact_link;
+} else {
+    $contact_href = 'http://' . $contact_link;
 }
-header( "$protocol 503 Service Unavailable", true, 503 );
-header( 'Content-Type: text/html; charset=utf-8' );
-header( 'Retry-After: 30' );
+
+// Get the user's preferred languages from the Accept-Language header
+$languages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+
+// Set the default language to English
+$lang = 'en';
+
+// Loop through the user's preferred languages and check if we have a translation available
+foreach ($languages as $language) {
+    $language = strtolower(substr($language, 0, 2));
+    if (in_array($language, array('en', 'ar', 'fr', 'de', 'es', 'zh', 'pt'))) {
+        $lang = $language;
+        break;
+    }
+}
+
+// Set the content-language header to the selected language
+header("Content-Language: $lang");
+
+// Check if the logo exists
+$logo_exists = !empty($logo_path) && file_exists($logo_path);
+
+// Translations object
+$translations = array(
+    'en' => array(
+        'title' => 'Site Maintenance',
+        'heading' => 'We\'ll be back soon!',
+        'text' => 'We\'re just sprucing things up a bit! In the meantime, feel free to <a href="' . $contact_href . '">join us on our customer support portal</a> for a chat or to get any assistance you need. We\'ll be up and running in just a moment, and the page will automatically refresh at the end of the countdown below.',
+        'team' => '&mdash; PHKHotdeals Team',
+        'day' => 'Days',
+        'hour' => 'Hours',
+        'minute' => 'Minutes',
+        'second' => 'Seconds',
+    ),
+    'ar' => array(
+        'title' => 'صيانة الموقع',
+        'heading' => 'سنعود قريبا!',
+        'text' => 'نحن نعمل على تحسين الموقع لك! في هذه الأثناء، لا تتردد في <a href="' . $contact_href . '">الانضمام إلينا على بوابة دعم العملاء الخاصة بنا</a> للدردشة أو للحصول على المساعدة التي تحتاجها. سنعود للعمل في لحظات قليلة، وسيتم تحديث الصفحة تلقائياً عند انتهاء العد التنازلي أدناه.',
+        'team' => '&mdash; فريق العمل',
+        'day' => 'أيام',
+        'hour' => 'ساعات',
+        'minute' => 'دقائق',
+        'second' => 'ثواني',
+    ),
+    'fr' => array(
+        'title' => 'Maintenance du site',
+        'heading' => 'Nous reviendrons bientôt!',
+        'text' => 'Nous apportons juste quelques améliorations! En attendant, n\'hésitez pas à <a href="' . $contact_href . '">nous rejoindre sur notre portail support client</a> pour discuter ou obtenir l\'aide dont vous avez besoin. Nous serons de retour en un instant, et la page se rafraîchira automatiquement à la fin du compte à rebours ci-dessous.',
+        'team' => '&mdash; L\'équipe',
+        'day' => 'Jours',
+        'hour' => 'Heures',
+        'minute' => 'Minutes',
+        'second' => 'Secondes',
+    ),
+    'de' => array(
+        'title' => 'Wartung der Website',
+        'heading' => 'Wir sind bald zurück!',
+        'text' => 'Wir verbessern gerade ein paar Dinge für dich! In der Zwischenzeit kannst du dich gerne <a href="' . $contact_href . '">uns auf unserem Kunden-Support-Portal anschließen</a>, um zu chatten oder um die Hilfe zu erhalten, die du benötigst. Wir sind in Kürze wieder da, und die Seite wird am Ende des Countdowns unten automatisch aktualisiert.',
+        'team' => '&mdash; Das Team',
+        'day' => 'Tage',
+        'hour' => 'Stunden',
+        'minute' => 'Minuten',
+        'second' => 'Sekunden',
+    ),
+    'es' => array(
+        'title' => 'Mantenimiento del sitio',
+        'heading' => '¡Volveremos pronto!',
+        'text' => '¡Estamos mejorando algunas cosas para ti! Mientras tanto, siéntete libre de <a href="' . $contact_href . '">unirte a nosotros en nuestro portal de soporte al cliente</a> para charlar o para obtener la asistencia que necesitas. Estaremos operativos en un instante, y la página se recargará automáticamente al final de la cuenta regresiva a continuación.',
+        'team' => '&mdash; El equipo',
+        'day' => 'Días',
+        'hour' => 'Horas',
+        'minute' => 'Minutos',
+        'second' => 'Segundos',
+    ),
+    'zh' => array(
+        'title' => '网站维护',
+        'heading' => '我们很快就会回来！',
+        'text' => '我们正在为您改善一些事物！同时，欢迎您<a href="' . $contact_href . '">加入我们的客户支持门户</a>进行交流或获取您所需的帮助。我们将很快恢复运行，页面将在下方倒计时结束时自动刷新。',
+        'team' => '&mdash; 团队',
+        'day' => '天',
+        'hour' => '小时',
+        'minute' => '分钟',
+        'second' => '秒',
+    ),
+    'pt' => array(
+        'title' => 'Manutenção do Site',
+        'heading' => 'Voltaremos em breve!',
+        'text' => 'Estamos aprimorando algumas coisas para você! Enquanto isso, sinta-se à vontade para <a href="' . $contact_href . '">se juntar a nós em nosso portal de suporte ao cliente</a> para conversar ou obter a ajuda que precisa. Estaremos de volta num piscar de olhos, e a página será recarregada automaticamente ao final da contagem abaixo.',
+        'team' => '&mdash; O time',
+        'day' => 'Dias',
+        'hour' => 'Horas',
+        'minute' => 'Minutos',
+        'second' => 'Segundos',
+    ),
+);
+
+// Set the protocol
+$protocol = isset($_SERVER['SERVER_PROTOCOL']) ?? '';
+if (!in_array($protocol, array('HTTP/1.1', 'HTTP/2', 'HTTP/2.0'), true)) {
+    $protocol = 'HTTP/1.0';
+}
+
+// Set the status code for crawlers like googlebot...
+header("$protocol 503 Service Unavailable", true, 503);
+header('Content-Type: text/html; charset=utf-8');
+header('Retry-After: ' . $time_to_wait);
 ?>
-
-<!doctype html>
-<html lang="en">
-  <head>
-    <title>Site Maintenance</title>
-    <meta charset="utf-8">
-    <meta name="robots" content="noindex">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      body { text-align: center; padding: 20px; font: 20px Helvetica, sans-serif; color: #efe8e8; background-color:#2e2929}
-      @media (min-width: 768px){
-        body{ padding-top: 150px; }
-      }
-      h1 { font-size: 50px; }
-      article { display: block; text-align: left; max-width: 650px; margin: 0 auto; }
-      a { color: #dc8100; text-decoration: none; }
-      a:hover { color: #efe8e8; text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <article>
-        <h1>We&rsquo;ll be back soon!</h1>
-        <div>
-            <p>Sorry for the inconvenience but we&rsquo;re performing some maintenance at the moment. If you need to you can always <a href="mailto:support@tmsentronix.info?subject=Maintenance%20Inquiry">contact us</a>, otherwise we&rsquo;ll be back online shortly!</p>
-            <p>&mdash; The Team</p>
-            
-        </div>
-        <div style="display: flex; flex-direction: row; justify-content: space-between;">
-            <p class="day"></p>
-            <p class="hour"></p>
-            <p class="minute"></p>
-            <p class="second"></p>
-        </div>
-    </article>
-    <script>
-        const countDown = () => {
-            const countDay = new Date('February 20, 2026 16:30:00');
-            const now = new Date();
-            const counter = countDay - now;
-            const second = 1000;
-            const minute = second * 60;
-            const hour = minute * 60;
-            const day = hour * 24;
-            const textDay = Math.floor(counter / day);
-            const textHour = Math.floor((counter % day) / hour);
-            const textMinute = Math.floor((counter % hour) / minute);
-            const textSecond = Math.floor((counter % minute) / second)
-            document.querySelector(".day").innerText = textDay + ' Days';
-            document.querySelector(".hour").innerText = textHour + ' Hours';
-            document.querySelector(".minute").innerText = textMinute + ' Minutes';
-            document.querySelector(".second").innerText = textSecond + ' Seconds';
-        }
-        countDown();
-        setInterval(countDown, 1000);
-    </script>
-  </body>
-</html
-
-
-
-
-
